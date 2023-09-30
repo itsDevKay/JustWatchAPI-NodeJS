@@ -941,6 +941,8 @@ export class JustWatchAPI {
     close = async () => { await this.browser.close(); }
 }
 
+/* DEMO
+===============================================================
 let api = new JustWatchAPI({ 
     puppeteerArgs: [], headless: 'new' 
 });
@@ -949,3 +951,5 @@ let similarTitles = await api.runExampleFlow('Boruto', 'SHOW');
 console.log(util.inspect(similarTitles, {depth:null}));
 
 await api.close();
+===============================================================
+*/
