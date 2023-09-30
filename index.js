@@ -1,7 +1,7 @@
 import puppeteer from 'puppeteer';
 import util from 'util';
 
-class JustWatchAPI {
+export class JustWatchAPI {
     constructor({ puppeteerArgs, headless }) {
         let args = ['--disable-web-security', ...puppeteerArgs]
         // console.log(args);
