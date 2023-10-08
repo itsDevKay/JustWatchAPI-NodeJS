@@ -27,7 +27,9 @@ export class JustWatchAPI {
         
         await this.page.setBypassCSP(true);
         // Navigate the page to a URL
-        await this.page.goto('https://developer.chrome.com/');
+        await this.page.goto('https://justwatch.com/');
+
+        // get device_id
     
         // Set screen size
         await this.page.setViewport({width: 1080, height: 1024}); 
@@ -65,7 +67,7 @@ export class JustWatchAPI {
                         "Accept-Language": "en-US,en;q=0.5",
                         "content-type": "application/json",
                         "App-Version": "3.7.1-web-web",
-                        "DEVICE-ID": "XFpiKlykEe6wTkKWjpYncw",
+                        //"DEVICE-ID": "XFpiKlykEe6wTkKWjpYncw",
                         "Sec-Fetch-Dest": "empty",
                         "Sec-Fetch-Mode": "cors",
                         "Sec-Fetch-Site": "same-site"
@@ -138,8 +140,8 @@ export class JustWatchAPI {
         }, searchQuery);
     }
     
-    getSimilarTitleByJWID = async (justWatchID) => {
-        const similarTitles = await this.page.evaluate(async (justWatchID) => {
+    getSimilarTitleByJWID = async ({ justWatchID, platform="WEB", language="en", country="US", excludeIrrelevantTitles=false, pageType="show" }) => {
+        const similarTitles = await this.page.evaluate(async (justWatchID, platform, language, country, excludeIrrelevantTitles, pageType) => {
             let response = await fetch("https://apis.justwatch.com/graphql", {
                 "credentials": "omit",
                 "headers": {
@@ -148,7 +150,7 @@ export class JustWatchAPI {
                     "Accept-Language": "en-US,en;q=0.5",
                     "content-type": "application/json",
                     "App-Version": "3.7.1-web-web",
-                    "DEVICE-ID": "XFpiKlykEe6wTkKWjpYncw",
+                    //"DEVICE-ID": "XFpiKlykEe6wTkKWjpYncw",
                     "Sec-Fetch-Dest": "empty",
                     "Sec-Fetch-Mode": "cors",
                     "Sec-Fetch-Site": "same-site"
@@ -157,18 +159,18 @@ export class JustWatchAPI {
                 "body": JSON.stringify({
                     "operationName":"GetSimilarTitles",
                     "variables":{
-                        "platform":"WEB",
-                        "language":"en",
-                        "country":"US",
+                        "platform":platform,
+                        "language":language,
+                        "country":country,
                         "filters":{
-                            "excludeIrrelevantTitles":false
+                            "excludeIrrelevantTitles":excludeIrrelevantTitles
                         },
                         "titleId":justWatchID,
                         "allowSponsoredRecommendations":{
-                            "country":"US",
-                            "language":"en",
-                            "platform":"WEB",
-                            "pageType":"show"
+                            "country":country,
+                            "language":language,
+                            "platform":platform,
+                            "pageType":pageType
                         }
                     },
                     "query":`query GetSimilarTitles(
@@ -342,12 +344,12 @@ export class JustWatchAPI {
             });
             let data = response.json();
             return await data;
-        }, justWatchID);
+        }, justWatchID, platform, language, country, excludeIrrelevantTitles, pageType);
         return await similarTitles;
     }
     
-    getDetailsByURL = async (itemFullPath) => {
-        const fullTitleDetails = await this.page.evaluate(async (itemFullPath) => {
+    getDetailsByURL = async ({ itemFullPath, platform="WEB", language="en", country="US", episodeMaxLimit=20 }) => {
+        const fullTitleDetails = await this.page.evaluate(async (itemFullPath, platform, language, country, episodeMaxLimit) => {
             let response = await fetch("https://apis.justwatch.com/graphql", {
                 "credentials": "omit",
                 "headers": {
@@ -356,7 +358,7 @@ export class JustWatchAPI {
                     "Accept-Language": "en-US,en;q=0.5",
                     "content-type": "application/json",
                     "App-Version": "3.7.1-web-web",
-                    "DEVICE-ID": "XFpiKlykEe6wTkKWjpYncw",
+                    //"DEVICE-ID": "XFpiKlykEe6wTkKWjpYncw",
                     "Sec-Fetch-Dest": "empty",
                     "Sec-Fetch-Mode": "cors",
                     "Sec-Fetch-Site": "same-site"
@@ -365,16 +367,16 @@ export class JustWatchAPI {
                 "body": JSON.stringify({
                     "operationName":"GetUrlTitleDetails",
                     "variables":{
-                        "platform":"WEB",
+                        "platform":platform,
                         "fullPath":itemFullPath,
-                        "language":"en",
-                        "country":"US",
-                        "episodeMaxLimit":20,
+                        "language":language,
+                        "country":country,
+                        "episodeMaxLimit":episodeMaxLimit,
                         "allowSponsoredRecommendations":{
-                            "country":"US",
-                            "platform":"WEB",
+                            "country":country,
+                            "platform":platform,
                             "pageType":"VIEW_TITLE_DETAIL",
-                            "language":"en"
+                            "language":language
                         }
                     },
                     "query":`query GetUrlTitleDetails(
@@ -832,12 +834,12 @@ export class JustWatchAPI {
             });
             let data = response.json();
             return await data;
-        }, itemFullPath);
+        }, itemFullPath, platform, language, country, episodeMaxLimit);
         return await fullTitleDetails;
     }
     
-    search = async (searchQuery) => {
-        const response = await this.page.evaluate(async (searchQuery) => {
+    search = async ({ searchQuery, language="en", country="US" }) => {
+        const response = await this.page.evaluate(async (searchQuery, language, country) => {
             let response = await fetch("https://apis.justwatch.com/graphql", {
                 "credentials": "omit",
                 "headers": {
@@ -846,7 +848,7 @@ export class JustWatchAPI {
                     "Accept-Language": "en-US,en;q=0.5",
                     "content-type": "application/json",
                     "App-Version": "3.7.1-web-web",
-                    "DEVICE-ID": "XFpiKlykEe6wTkKWjpYncw",
+                    //"DEVICE-ID": "XFpiKlykEe6wTkKWjpYncw",
                     "Sec-Fetch-Dest": "empty",
                     "Sec-Fetch-Mode": "cors",
                     "Sec-Fetch-Site": "same-site"
@@ -855,7 +857,7 @@ export class JustWatchAPI {
                 "body": JSON.stringify({
                     "operationName":"GetSuggestedTitles",
                     "variables":{
-                        "country":"US","language":"en","first":4,"filter":{
+                        "country":country,"language":language,"first":4,"filter":{
                             "searchQuery":searchQuery
                         }
                     },
@@ -892,7 +894,7 @@ export class JustWatchAPI {
             });
             let data = response.json();
             return await data;
-        }, searchQuery);
+        }, searchQuery, language, country);
         return await response;
     }
     
@@ -917,7 +919,7 @@ export class JustWatchAPI {
         // backdrop
         // https://images.justwatch.com/backdrop/258529090/s1920/the-book-of-boba-fett.jpg
     
-        let response = await this.search(searchQuery);
+        let response = await this.search({ searchQuery: searchQuery, language: "en", country: "US" });
         // console.log(util.inspect(response, {depth:null}));
     
         //filter for proper item
@@ -925,14 +927,20 @@ export class JustWatchAPI {
         // console.log(itemFullPath);
     
         // get full item details
-        const fullTitleDetails = await this.getDetailsByURL(itemFullPath);
+        const fullTitleDetails = await this.getDetailsByURL({
+            itemFullPath: itemFullPath, platform: 'WEB', 
+            language: 'en', country: 'US', episodeMaxLimit: 20
+        });
         // console.log(util.inspect(fullTitleDetails, {depth:null}));
     
         let justWatchID = fullTitleDetails.data.urlV2.node.id;
         // console.log(justWatchID);
     
         // similar titles
-        const similarTitles = await this.getSimilarTitleByJWID(justWatchID);
+        const similarTitles = await this.getSimilarTitleByJWID({
+            justWatchID: justWatchID, platform: 'WEB', language: 'en',
+            country: 'US', excludeIrrelevantTitles: false, pageType: 'show'
+        });
         // console.log(util.inspect(similarTitles, {depth:null}));
 
         return await similarTitles;
@@ -942,7 +950,7 @@ export class JustWatchAPI {
 }
 
 /* DEMO
-===============================================================
+=============================================================== */
 let api = new JustWatchAPI({ 
     puppeteerArgs: [], headless: 'new' 
 });
@@ -951,5 +959,6 @@ let similarTitles = await api.runExampleFlow('Boruto', 'SHOW');
 console.log(util.inspect(similarTitles, {depth:null}));
 
 await api.close();
+/*
 ===============================================================
 */
