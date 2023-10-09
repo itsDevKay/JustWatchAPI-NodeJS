@@ -13,8 +13,6 @@
     <a href="https://github.com/itsDevKay/JustWatchAPI-NodeJS"><strong>Explore the docs »</strong></a>
     <br/>
     <br/>
-    <a href="https://github.com/itsDevKay/JustWatchAPI-NodeJS">View Demo</a>
-    .
     <a href="https://github.com/itsDevKay/JustWatchAPI-NodeJS/issues">Report Bug</a>
     .
     <a href="https://github.com/itsDevKay/JustWatchAPI-NodeJS/issues">Request Feature</a>
