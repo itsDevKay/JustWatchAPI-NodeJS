@@ -89,6 +89,7 @@ npm install
 ## Usage
 
 ```javascript
+import JustWatchAPI from 'JustWatchAPI';
 import util from 'util';
 
 let jw = new JustWatchAPI({ 
