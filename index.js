@@ -11,6 +11,7 @@ export class JustWatchAPI {
         };
         this.page;
         this.browser;
+        this.DEVICE_ID = null;
     }
 
     initialize = async () => {
@@ -26,10 +27,19 @@ export class JustWatchAPI {
         this.page = page;
         
         await this.page.setBypassCSP(true);
-        // Navigate the page to a URL
-        await this.page.goto('https://justwatch.com/');
 
-        // get device_id
+        // GET DEVICE ID FROM NETWORK REQUESTS
+        await page.setRequestInterception(true);
+        page.on('request', interceptedRequest => {
+            if (interceptedRequest.url().startsWith('https://apis.')) {
+                if (interceptedRequest.headers()['device-id'] && !this.DEVICE_ID) {
+                    this.DEVICE_ID = interceptedRequest.headers()['device-id'];
+                }
+            }
+            interceptedRequest.continue();
+        });
+        // Navigate the page to a URL. Needed to get device id
+        await this.page.goto('https://justwatch.com/');
     
         // Set screen size
         await this.page.setViewport({width: 1080, height: 1024}); 
@@ -37,7 +47,7 @@ export class JustWatchAPI {
     
 
     stressTester = async (searchQuery) => {
-        const response = await this.page.evaluate(async (searchQuery) => {
+        const response = await this.page.evaluate(async (searchQuery, DEVICE_ID) => {
             /*
              * 773 requests at 250ms interval before running into
              * 429 (Too Many Requests). 
@@ -67,7 +77,7 @@ export class JustWatchAPI {
                         "Accept-Language": "en-US,en;q=0.5",
                         "content-type": "application/json",
                         "App-Version": "3.7.1-web-web",
-                        //"DEVICE-ID": "XFpiKlykEe6wTkKWjpYncw",
+                        "DEVICE-ID": DEVICE_ID,
                         "Sec-Fetch-Dest": "empty",
                         "Sec-Fetch-Mode": "cors",
                         "Sec-Fetch-Site": "same-site"
@@ -137,11 +147,11 @@ export class JustWatchAPI {
             }
     
             runLoop(1000, 500);
-        }, searchQuery);
+        }, searchQuery, this.DEVICE_ID);
     }
     
     getSimilarTitleByJWID = async ({ justWatchID, platform="WEB", language="en", country="US", excludeIrrelevantTitles=false, pageType="show" }) => {
-        const similarTitles = await this.page.evaluate(async (justWatchID, platform, language, country, excludeIrrelevantTitles, pageType) => {
+        const similarTitles = await this.page.evaluate(async (justWatchID, platform, language, country, excludeIrrelevantTitles, pageType, DEVICE_ID) => {
             let response = await fetch("https://apis.justwatch.com/graphql", {
                 "credentials": "omit",
                 "headers": {
@@ -150,7 +160,7 @@ export class JustWatchAPI {
                     "Accept-Language": "en-US,en;q=0.5",
                     "content-type": "application/json",
                     "App-Version": "3.7.1-web-web",
-                    //"DEVICE-ID": "XFpiKlykEe6wTkKWjpYncw",
+                    "DEVICE-ID": DEVICE_ID,
                     "Sec-Fetch-Dest": "empty",
                     "Sec-Fetch-Mode": "cors",
                     "Sec-Fetch-Site": "same-site"
@@ -344,12 +354,12 @@ export class JustWatchAPI {
             });
             let data = response.json();
             return await data;
-        }, justWatchID, platform, language, country, excludeIrrelevantTitles, pageType);
+        }, justWatchID, platform, language, country, excludeIrrelevantTitles, pageType, this.DEVICE_ID);
         return await similarTitles;
     }
     
     getDetailsByURL = async ({ itemFullPath, platform="WEB", language="en", country="US", episodeMaxLimit=20 }) => {
-        const fullTitleDetails = await this.page.evaluate(async (itemFullPath, platform, language, country, episodeMaxLimit) => {
+        const fullTitleDetails = await this.page.evaluate(async (itemFullPath, platform, language, country, episodeMaxLimit, DEVICE_ID) => {
             let response = await fetch("https://apis.justwatch.com/graphql", {
                 "credentials": "omit",
                 "headers": {
@@ -358,7 +368,7 @@ export class JustWatchAPI {
                     "Accept-Language": "en-US,en;q=0.5",
                     "content-type": "application/json",
                     "App-Version": "3.7.1-web-web",
-                    //"DEVICE-ID": "XFpiKlykEe6wTkKWjpYncw",
+                    "DEVICE-ID": DEVICE_ID,
                     "Sec-Fetch-Dest": "empty",
                     "Sec-Fetch-Mode": "cors",
                     "Sec-Fetch-Site": "same-site"
@@ -834,12 +844,12 @@ export class JustWatchAPI {
             });
             let data = response.json();
             return await data;
-        }, itemFullPath, platform, language, country, episodeMaxLimit);
+        }, itemFullPath, platform, language, country, episodeMaxLimit, this.DEVICE_ID);
         return await fullTitleDetails;
     }
     
     search = async ({ searchQuery, language="en", country="US" }) => {
-        const response = await this.page.evaluate(async (searchQuery, language, country) => {
+        const response = await this.page.evaluate(async (searchQuery, language, country, DEVICE_ID) => {
             let response = await fetch("https://apis.justwatch.com/graphql", {
                 "credentials": "omit",
                 "headers": {
@@ -848,7 +858,7 @@ export class JustWatchAPI {
                     "Accept-Language": "en-US,en;q=0.5",
                     "content-type": "application/json",
                     "App-Version": "3.7.1-web-web",
-                    //"DEVICE-ID": "XFpiKlykEe6wTkKWjpYncw",
+                    "DEVICE-ID": DEVICE_ID,
                     "Sec-Fetch-Dest": "empty",
                     "Sec-Fetch-Mode": "cors",
                     "Sec-Fetch-Site": "same-site"
@@ -894,7 +904,7 @@ export class JustWatchAPI {
             });
             let data = response.json();
             return await data;
-        }, searchQuery, language, country);
+        }, searchQuery, language, country, this.DEVICE_ID);
         return await response;
     }
     
@@ -955,6 +965,7 @@ let api = new JustWatchAPI({
     puppeteerArgs: [], headless: 'new' 
 });
 await api.initialize();
+console.log(api.DEVICE_ID);
 let similarTitles = await api.runExampleFlow('Boruto', 'SHOW');
 console.log(util.inspect(similarTitles, {depth:null}));
 
